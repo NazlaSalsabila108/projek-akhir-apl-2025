@@ -1,6 +1,6 @@
 #include <iostream> //cin cout
 #include <iomanip>
-#include <string>
+// #include <string>
 #include <algorithm>
 #include <conio.h>
 #include <limits>
@@ -100,35 +100,27 @@ string masukkanPassword() {
 
     cout << "Password: ";
     while (true) {
-        password.clear();
-        while (true) {
-            ch = _getch();
-            if (ch == '\r') {
-                break;
-            } else if (ch == '\b') {
-                if (!password.empty()) {
-                    password.pop_back();
-                    cout << "\b \b";
-                }
-            } else {
-                password += ch;
-                cout << '*';
+        ch = _getch();
+
+        if (ch == '\r') { 
+            break;
+        } else if (ch == '\b') { 
+            if (!password.empty()) {
+                password.pop_back();
+                cout << "\b \b"; 
             }
+        } else {
+            password += ch;
+            cout << '-'; 
         }
-        cout << endl;
-        // Validasi pw: tidak boleh kosong & tidak boleh hanya spasi
-        if (password.empty()) {
-            printWithColor("Password tidak boleh kosong!\n", "red");
-            cout << "Password: ";
-            continue;
-        }
-        if (password.find_first_not_of(' ') == string::npos) {
-            printWithColor("Password tidak boleh hanya spasi!\n", "red");
-            cout << "Password: ";
-            continue;
-        }
-        break;
     }
+    cout << endl;
+    
+    if (password.empty()) {
+        printWithColor("Password tidak boleh kosong!\n", "red");
+        return masukkanPassword();
+    }
+    
     return password;
 }
 
@@ -354,14 +346,15 @@ void tampilkanMenuLogin() {
 }
 
 void tulisanIndah() {
-    printWithColor( R"(   
-____   ____                        _________ __                        
-\   \ /   /____  ______   ____    /   _____//  |_  ___________   ____  
- \   Y   /\__  \ \____ \_/ __ \   \_____  \\   __\/  _ \\_  __ \\_/ __ \
-  \     /  / __ \|  |_> >  ___/   /        \|  | (  <_> )  | \/\  ___/ 
-   \___/  (____  /   __/ \___  > /_______  /|__|  \____/|__|    \___  >
-               \/|__|        \/          \/                         \/
-
+    printWithColor( R"(
+  _____             _                     _      _             _     _ 
+ |  __ \           (_)            ___    | |    (_)           (_)   | |
+ | |  | | _____   ___  ___ ___   ( _ )   | |     _  __ _ _   _ _  __| |
+ | |  | |/ _ \ \ / / |/ __/ _ \  / _ \/\ | |    | |/ _` | | | | |/ _` |
+ | |__| |  __/\ V /| | (_|  __/ | (_>  < | |____| | (_| | |_| | | (_| |
+ |_____/ \___| \_/ |_|\___\___|  \___/\/ |______|_|\__, |\__,_|_|\__,_|
+                                                      | |              
+                                                      |_|              
     )", "yellow");
 }
 void prosesLogin(VapeStore* store, bool* loginBerhasil, bool* isAdmin) {
@@ -371,7 +364,7 @@ void prosesLogin(VapeStore* store, bool* loginBerhasil, bool* isAdmin) {
     *isAdmin = false;
 
     while (attempts < 3 && !(*loginBerhasil)) {
-        username = getInputWithValidation("Username: ");
+        username = getInputWithValidation("Username: ", MAX_USERNAME_PASSWORD);
         password = masukkanPassword();
 
         if (username == "google" && password == "kelompok4") {
@@ -415,13 +408,7 @@ void prosesRegister(VapeStore* store) {
         return;
     }
 
-    string username = getInputWithValidation("Username :");
-    
-    // Cegah username admin yang didaftarkan sebagai user
-    if (username == "google") {
-        printWithColor("Username tidak boleh menggunakan nama admin!\n", "red");
-        return;
-    }
+    string username = getInputWithValidation("Username :", MAX_USERNAME_PASSWORD);
     
     for (int i = 0; i < store->jumlahUser; i++) {
         if (store->users[i].username == username) {
@@ -475,13 +462,6 @@ void tambahBarang(VapeStore* store) {
     }
 
     string namaBarang = getInputWithValidation("Nama barang (maksimal " + to_string(MAX_NAMA_BARANG) + " karakter): ", MAX_NAMA_BARANG);
-    // Cek duplikat nama barang
-    for (int i = 0; i < store->jumlahBarang; i++) {
-        if (store->barang[i].nama == namaBarang) {
-            printWithColor("Nama barang sudah ada!\n", "red");
-            return;
-        }
-    }
     
     store->barang[store->jumlahBarang].nama = namaBarang;
 
@@ -560,7 +540,7 @@ void ubahBarangDenganPointer(Barang* barang, int jumlahBarang) {
         }
         
         if (index < 1 || index > jumlahBarang) {
-            printWithColor("Nomor tidak valid!" + to_string(jumlahBarang) + ": ", "red");
+            printWithColor("Nomor tidak valid! Masukkan angka antara 1-" + to_string(jumlahBarang) + ": ", "red");
             continue;
         }
         break;
@@ -569,13 +549,6 @@ void ubahBarangDenganPointer(Barang* barang, int jumlahBarang) {
     Barang* barangToEdit = &barang[index - 1]; 
     
     string namaBaru = getInputWithValidation("Nama baru (maksimal " + to_string(MAX_NAMA_BARANG) + " karakter): ", MAX_NAMA_BARANG);
-    // Cek duplikasi nama barang (kecuali diri sendiri)
-    for (int i = 0; i < jumlahBarang; i++) {
-        if (i != index - 1 && barang[i].nama == namaBaru) {
-            printWithColor("Nama barang sudah ada!\n", "red");
-            return;
-        }
-    }
     barangToEdit->nama = namaBaru;
 
     cout << "Pilih jenis:\n";
@@ -815,7 +788,7 @@ void menuSearchUser(VapeStore* store){
 
     string prefix = getInputWithValidation("Silahkan masukkan nama barang yang ingin dicari: ", MAX_NAMA_BARANG);
     bool ditemukan = false;
-    // Tampilkan tabel hanya jika ditemukan, jika barang tidak ditemukan tampilkan pesan saja
+    // Tampilkan tabel hanya jika ditemukan
     for (int i = 0; i < store->jumlahBarang; i++) {
         string namaBarang = store->barang[i].nama;
         if (namaBarang.length() >= prefix.length() &&
@@ -874,10 +847,4 @@ void menuSortingAdmin(VapeStore* store) {
         tampilkanBarisBarang(&temp[i], i + 1);
     }
     tampilkanFooterTabel();
-}
-
-// Fungsi rekursif untuk menghitung total jumlah barang dari array Barang
-int totalJumlahBarangRekursif(Barang arr[], int n) {
-    if (n <= 0) return 0;
-    return arr[n-1].jumlah + totalJumlahBarangRekursif(arr, n-1);
 }
