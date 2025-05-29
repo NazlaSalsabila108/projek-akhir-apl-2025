@@ -329,7 +329,7 @@ int main() {
                 prosesRegister(&store); 
                 break;
             case 3:
-                printWithColor("Anda berhasil keluar dari program!.\n", "blue");
+                printWithColor("Anda berhasil keluar dari program ini!.\n", "blue");
                 return 0;
         }
     }
@@ -787,7 +787,7 @@ void menuSearchUser(VapeStore* store){
     string prefix = getInputWithValidation(
         "Silahkan masukkan nama barang yang ingin dicari: ", MAX_NAMA_BARANG);
     bool ditemukan = false;
-    // Tampilkan tabel hanya jika ditemukan
+
     for (int i = 0; i < store->jumlahBarang; i++) {
         string namaBarang = store->barang[i].nama;
         if (namaBarang.length() >= prefix.length() &&
